@@ -9,6 +9,12 @@ bin-release/
 .settings/
 
 # Executables
+.gitignore~ 
+*.un~
+*.~
+*.mp3
+*.wav
+*.py~
 *.swf
 *.air
 *.ipa
