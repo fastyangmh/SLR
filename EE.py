@@ -12,7 +12,17 @@ from scipy.signal import stft
 from librosa.core import to_mono
 from API.FeaExt import MFCC
 from db import get_db
-np.set_printoptions(threshold=np.nan)
+import timeit
+#np.set_printoptions(threshold=np.nan)
+
+
+def mono_detection(sig):
+    if len(sig.shape)== 2:
+        sig = to_mono(sig.T)
+        return sig
+    else: 
+        return sig 
+    
 def CompuEnergy(frameMatrix):
     frameNb = frameMatrix.shape[1]
     energyArr = np.zeros(frameNb)
@@ -20,7 +30,7 @@ def CompuEnergy(frameMatrix):
         energyArr[i] = np.sum(np.abs(frameMatrix[:,i])**2)
     return energyArr
 
-def frameMat(signal,frame,overlap ):
+def frameMat(signal,frame,overlap):
     step = frame - overlap
     Signalsize = np.size(signal)
      # note: Signalsize和overlap都是int 型別所以必須轉型，另外ceil return float
@@ -86,20 +96,9 @@ def EEF(energy,entropy):
     C_e = np.sum(energy[:10])/10
     C_h = np.sum(entropy[:10])/10
     M_i = (energy - C_e)*(entropy[:-1] - C_h)
-
     return np.sqrt(1+np.abs(M_i))
 
-if __name__ == '__main__':
-    #max H = 5.72 , and has nan
-    name = 'eee.wav'
-    #name = speech_en.specsub(name)
-    fs,sig = wavfile.read(name)
-    if len(sig.shape)== 2:
-        sig = to_mono(sig.T)
-
-    frameSize = 3*441
-    Overlap = 0
-    Hop = frameSize - Overlap
+def VAD(sig,fs,frameSize):
     # return shape =[frameLen,N_frame] 
     frameMatrix = frameMat(sig,frameSize,overlap=0)
     # stftMatrix dim is  [freq(frameSize),time(frameCount)]
@@ -132,7 +131,7 @@ if __name__ == '__main__':
                 B_state = 0
                 E_state = 0
                 while(E_state != -1 and pos < len(EE) ):
-                    if EE[pos] < begTh:
+                    if EE[pos] < endTh:
                         w_end.append(pos)
                         E_state+=1
                         #print(pos)
@@ -158,18 +157,39 @@ if __name__ == '__main__':
             B_state = 0
             w_begin.clear()
             pos+=1
-        #print(pos) 
+    return PairPoint
+
+if __name__ == '__main__':
+    start = timeit.default_timer()
+    #max H = 5.72 , and has nan
+    name = 'week1_review.wav'
+    #name = speech_en.specsub(name)
+    fs,sig = wavfile.read(name)
+    sig = mono_detection(sig)        
+    frameSize = 3*441
+    Overlap = 0
+    Hop = frameSize - Overlap
+    PairPoint = VAD(sig,fs,frameSize) 
     feaDB = get_db() 
+    '''
+    for write wav use
     if sig.dtype != 'int16':
         sig=np.asarray(sig,dtype=np.int16)
-    
+    '''
     for i in PairPoint:
-        # 0 is start point ,1 is end point
-        sigTemp = sig[(i[0]*441): (i[1]*441)]
+        #for PairPoint index 0 is start point , 1 is end point
+        StartTime = i[0]*441
+        EndTime = i[1]*441
+        Duration = (EndTime-StartTime)/fs
+        sigTemp = sig[StartTime:EndTime]
         fea = MFCC(sigTemp,fs)
-        print(str(fea).replace("\n",""))
-        feaDB.FeaSpace.insert_one({"MFCC":str(fea).replace("\n","")})
+        #print(str(fea).replace("\n",""))
+        feaDB.FeaSpace.insert_one({"MFCC":str(fea).replace("\n",""),"StartTime":StartTime/fs,"Duration":Duration })
     
+    stop = timeit.default_timer()
+    print ("Computing Time:")
+    print (stop - start) 
+        
     # matplotlib application
     '''
     color = [ 'g', 'r', 'c', 'm', 'y', 'k','b']
