@@ -162,7 +162,7 @@ def VAD(sig,fs,frameSize):
 if __name__ == '__main__':
     start = timeit.default_timer()
     #max H = 5.72 , and has nan
-    name = 'week1_review.wav'
+    name = 'week1_day1.wav'
     #name = speech_en.specsub(name)
     fs,sig = wavfile.read(name)
     sig = mono_detection(sig)        
@@ -189,6 +189,9 @@ if __name__ == '__main__':
     stop = timeit.default_timer()
     print ("Computing Time:")
     print (stop - start) 
+    print ("NB of seg ")
+    print (len(PairPoint))
+
         
     # matplotlib application
     '''
