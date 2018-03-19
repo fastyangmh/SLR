@@ -162,7 +162,7 @@ def VAD(sig,fs,frameSize):
 if __name__ == '__main__':
     start = timeit.default_timer()
     #max H = 5.72 , and has nan
-    name = 'week1_day1.wav'
+    name = 'OG-CD2-3.wav'
     #name = speech_en.specsub(name)
     fs,sig = wavfile.read(name)
     sig = mono_detection(sig)        
