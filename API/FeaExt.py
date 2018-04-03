@@ -10,13 +10,18 @@ import librosa  as lb
 import numpy as np 
 # MFCC frame size should be decided by audio segmentions size
 # but now MFCC Size is using fixed size 
-def MFCC(sig,rate,n_mfcc=13,hop_length=512,n_fft=1024):
+def MFCC(sig,rate,n_mfcc=13,hop_length=256,n_fft=1024,reType='M'):
     mfcc=lb.feature.mfcc(sig,rate,n_mfcc=n_mfcc,hop_length=hop_length,n_fft=n_fft)
     mfcc_delta = lb.feature.delta(mfcc)
     mfcc_delta_delta = lb.feature.delta(mfcc_delta)
     mfcc_39=np.vstack([mfcc, mfcc_delta,mfcc_delta_delta])
-    h_mfcc_39=np.reshape(mfcc_39,(mfcc_39.shape[0]*mfcc_39.shape[1]),order='F') 
-    return h_mfcc_39
+    if reType == 'S':
+        h_mfcc_39=np.reshape(mfcc_39,(mfcc_39.shape[0]*mfcc_39.shape[1]),order='F') 
+        return h_mfcc_39
+    elif reType == 'M':
+        return mfcc_39
+        
+    
 
 
 # Using the Test Wav excutes MFCC function.

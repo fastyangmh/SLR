@@ -10,21 +10,17 @@ from sklearn.mixture import GMM
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import datasets
+from MAP_GMM import gmm_map_qb
 
 
 iris = datasets.load_iris()
-X_train = iris.data[0:50]
-y_train = iris.target[0:50]
+X_train = iris.data[0:100]
+y_train = iris.target[0:100]
+Mapdata = iris.data[100:]
 #X_test = iris.data[test_index]
 #y_test = iris.target[test_index]
 
 
 SeModel= GMM(n_components=2,covariance_type='diag', init_params='wc', n_iter=100)  
 SeModel.fit(X_train[:,[0,2]])
-data = SeModel.sample(50)
-
-plt.scatter(X_train[:,[0]],X_train[:,[2]],label='Setosa')
-plt.scatter(data[:,[0]],data[:,[1]],label='GMM-Setosa' )
-plt.scatter(iris.data[50:100,0],iris.data[50:100,2],label='versicolor')
-plt.legend()
-plt.show()
+Mapgmm = gmm_map_qb(Mapdata[:,[0,2]],SeModel)

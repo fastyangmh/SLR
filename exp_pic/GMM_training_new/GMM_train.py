@@ -11,7 +11,7 @@ from sklearn import mixture
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import datasets
-
+from MAP_GMM import gmm_map_qb
 
 iris = datasets.load_iris()
 X_train = iris.data[0:50]
@@ -34,7 +34,9 @@ for val in iterArr:
     NewModel.fit(data)
     m2.append (NewModel.means_)
     co2.append(NewModel.covariances_)
-    
+
+
+
 
 
 
