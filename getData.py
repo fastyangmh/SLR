@@ -66,9 +66,7 @@ Y = np.asarray(Y).T
 sc = StandardScaler()
 sc.fit(X)
 X_std =sc.transform(X)
-
 X_train, X_test, y_train, y_test = train_test_split(X_std ,Y,test_size=0.3,random_state=42)
-
 model = Sequential()
 model.add(Dense(units=1024,input_dim=975,kernel_initializer='uniform',activation='relu'))
 model.add(Dense(units=1024,kernel_initializer='uniform',activation='sigmoid'))

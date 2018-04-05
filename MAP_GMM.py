@@ -7,30 +7,37 @@ Created on Sun Dec 03 12:35:33 2017
 
 from sklearn.mixture import GMM 
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn import datasets
 import warnings
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt 
 warnings.filterwarnings("ignore")
 iris = datasets.load_iris()
-X_train = iris.data[0:100]
-y_train = iris.target[0:100]
+X_train = iris.data[0:150]
+y_train = iris.target[0:150]
 #X_test = iris.data[test_index]
 #y_test = iris.target[test_index]
 
-
 SeModel= GMM(n_components=2,covariance_type='full', init_params='wc', n_iter=100)  
 SeModel.fit(X_train[:50,[0,2]])
-data = X_train[60:70,[0,2]] 
-
-inter = 1
+data = X_train[50:100,[0,2]] 
+sc = StandardScaler()
+inter = 200
 while (inter != 0 ):
-    logPro ,comPro= SeModel.score_samples(data)
+    print('inter %d'%(inter))
+    comPro= SeModel.predict_proba(data)
     Nk =np.sum(comPro,axis=0)
     
     cov = [] 
     ''' mean '''
-    mu=comPro*data
-    mu_N = mu/Nk
+    
+    numData, numCompoent = comPro.shape
+    '''2 is fea dim  '''
+    mu_N = np.zeros((numCompoent,2))
+    for i in range(int(numCompoent)):
+        for idx , val in enumerate (comPro[:,i]):
+            mu_N[i,:]+=val*data[idx,:]/Nk[i]
+            
     Com_num = len(Nk)
     sample_num , feaDim = data.shape
     '''covar'''
@@ -40,8 +47,8 @@ while (inter != 0 ):
             sample = data[j,:]
             sample= sample[:,np.newaxis] 
             ''' j sample , i compont'''
-            cov_k+= np.matmul(sample,sample.T) * comPro[j,i]
-        cov.append(cov_k/Nk[i])
+            cov_k+= (np.matmul(sample,sample.T)*comPro[j,i])/Nk[i]
+        cov.append(cov_k)
     
     relevance_fac = 16    
     regular_par = Nk/(Nk+relevance_fac)     
@@ -51,21 +58,26 @@ while (inter != 0 ):
     new_wei = []
     new_mu = [] 
     new_cov = []
-    ''' training '''
+    ''' training each compont '''
     for i in range(Com_num):
-        print(1-regular_par[i])
-        new_wei.append(regular_par[i]*Nk[i]/Com_num+(1-regular_par[i]*com_wei[i]))
-        new_mu.append(regular_par[i]*mu_N[i]+(1-regular_par[i])*com_mu[i])
+        print(regular_par[i])
+        new_wei.append(regular_par[i]*Nk[i]/numData+(1-regular_par[i]*com_wei[i]))
+        new_mu.append( (regular_par[i]*mu_N[i])+((1-regular_par[i])*com_mu[i,:]))
         muTmp =  com_mu[i]
-        mu_cov = np.matmul(muTmp[:,np.newaxis] , muTmp[:,np.newaxis].T)
-        new_cov.append((regular_par[i]*cov[i])+ (1-regular_par[i])*(com_cov[i]+mu_cov) - mu_cov)    
+        muTmp = muTmp[:,np.newaxis]
+        mu_cov = np.matmul(muTmp,muTmp.T)
+        new_cov.append(( (regular_par[i]*cov[i])+( ((1-regular_par[i])*com_cov[i]) + mu_cov))-mu_cov)   
+    ''' update '''    
     new_wei = new_wei/sum(new_wei) 
-
     SeModel.weights_ = np.asarray(new_wei)   
     SeModel.means_ = np.asarray(new_mu)
     SeModel.covars_ = np.asarray(new_cov,dtype=np.float64)
-
     inter -=1
+
+x=SeModel.sample(50)    
+plt.scatter(x[:,0],x[:,1])
+plt.scatter(X_train[50:100,0] ,X_train[50:100,2])
+
 #cov = comPro*()
 
 
