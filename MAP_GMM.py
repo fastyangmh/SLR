@@ -18,19 +18,18 @@ y_train = iris.target[0:150]
 #X_test = iris.data[test_index]
 #y_test = iris.target[test_index]
 
-SeModel= GMM(n_components=2,covariance_type='full', init_params='wc', n_iter=100)  
+SeModel= GMM(n_components=3,covariance_type='full', init_params='wc', n_iter=100)  
 SeModel.fit(X_train[:50,[0,2]])
 data = X_train[50:100,[0,2]] 
 sc = StandardScaler()
-inter = 200
+inter = 5000
 while (inter != 0 ):
     print('inter %d'%(inter))
     comPro= SeModel.predict_proba(data)
     Nk =np.sum(comPro,axis=0)
     
-    cov = [] 
+   
     ''' mean '''
-    
     numData, numCompoent = comPro.shape
     '''2 is fea dim  '''
     mu_N = np.zeros((numCompoent,2))
@@ -38,6 +37,7 @@ while (inter != 0 ):
         for idx , val in enumerate (comPro[:,i]):
             mu_N[i,:]+=val*data[idx,:]/Nk[i]
             
+    cov = [] 
     Com_num = len(Nk)
     sample_num , feaDim = data.shape
     '''covar'''
@@ -61,12 +61,15 @@ while (inter != 0 ):
     ''' training each compont '''
     for i in range(Com_num):
         print(regular_par[i])
-        new_wei.append(regular_par[i]*Nk[i]/numData+(1-regular_par[i]*com_wei[i]))
-        new_mu.append( (regular_par[i]*mu_N[i])+((1-regular_par[i])*com_mu[i,:]))
+        new_wei.append(regular_par[i]*(Nk[i]/numData)+(1-regular_par[i]*com_wei[i]))
+        _mu = (regular_par[i]*mu_N[i])+((1-regular_par[i])*com_mu[i,:])
+        new_mu.append(_mu)
         muTmp =  com_mu[i]
         muTmp = muTmp[:,np.newaxis]
+        _mu = _mu[:,np.newaxis]
         mu_cov = np.matmul(muTmp,muTmp.T)
-        new_cov.append(( (regular_par[i]*cov[i])+( ((1-regular_par[i])*com_cov[i]) + mu_cov))-mu_cov)   
+        _mu_cov = np.matmul(_mu,_mu.T)
+        new_cov.append((regular_par[i]*cov[i])+(1-regular_par[i])*(com_cov[i]+mu_cov)-_mu_cov)   
     ''' update '''    
     new_wei = new_wei/sum(new_wei) 
     SeModel.weights_ = np.asarray(new_wei)   
@@ -74,10 +77,10 @@ while (inter != 0 ):
     SeModel.covars_ = np.asarray(new_cov,dtype=np.float64)
     inter -=1
 
-x=SeModel.sample(50)    
-plt.scatter(x[:,0],x[:,1])
-plt.scatter(X_train[50:100,0] ,X_train[50:100,2])
-
+x=SeModel.sample(100)    
+plt.scatter(x[:,0],x[:,1],facecolors='none',edgecolors='r')
+plt.scatter(X_train[50:100,0] ,X_train[50:100,2],facecolors='none',edgecolors='g')
+plt.scatter(X_train[0:50,0] ,X_train[0:50,2],facecolors='none',edgecolors='b')
 #cov = comPro*()
 
 
