@@ -34,7 +34,7 @@ while(True):
         #print(line+'/'+data[0])
         if data[1] != '-1':
             fs,sig = wavfile.read(line+'/'+data[0])
-            MFCC=FeaPro.MFCC(sig,fs,reType='M')
+            MFCC=FeaPro.MFCC(sig,fs,hop_length=768,reType='M')
             '''pandding zeros  or dropout frames '''
             row,col = MFCC.shape
             numofpadd = col%frameStack
@@ -50,17 +50,25 @@ while(True):
 keyList = list(dataFrame)
 X=[]
 Y=[]
+cout = 0
 for addr in keyList :
+    print (addr)
     fea=dataFrame[addr]['MFCC']
     label = dataFrame[addr]['label']
     row,col = fea.shape
-    inter = col/frameStack
-    fea = fea.flatten('F')
-    split = np.split(fea,inter)
-    for val in split:
-        Y.append(int(label))
-        X.append(val)
+    if label == '0':
+        cout+=1
         
+    if col >=frameStack:
+        inter = col/frameStack
+        fea = fea.flatten('F')
+        split = np.split(fea,inter)
+        for val in split:
+            Y.append(int(label))
+            X.append(val)
+    else :
+        print('this wav less than frameStack')
+            
 X = np.asarray(X)
 Y = np.asarray(Y).T
 sc = StandardScaler()
@@ -68,20 +76,18 @@ sc.fit(X)
 X_std =sc.transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X_std ,Y,test_size=0.3,random_state=42)
 model = Sequential()
-model.add(Dense(units=1024,input_dim=975,kernel_initializer='uniform',activation='relu'))
+model.add(Dense(units=1024,input_dim=975,kernel_initializer='uniform',activation='sigmoid'))
 model.add(Dense(units=1024,kernel_initializer='uniform',activation='sigmoid'))
-model.add(Dense(units=1024,kernel_initializer='uniform',activation='sigmoid'))
+#model.add(Dense(units=1024,kernel_initializer='uniform',activation='sigmoid'))
 #model.add(Dense(units=1024,kernel_initializer='uniform',activation='relu'))
 #model.add(Dense(units=1024,kernel_initializer='uniform',activation='relu'))
 #model.add(Dense(units=1024,kernel_initializer='uniform',activation='relu'))
 #model.add(Dense(units=1024,kernel_initializer='uniform',activation='relu'))
 model.add(Dense(units=1,kernel_initializer='uniform',activation='sigmoid'))
-
-model.compile(loss='mse',optimizer='adam', metrics=['accuracy'])
-model.fit(x=X_train,y=y_train,epochs=200)
+model.compile(loss='mse',optimizer='SGD', metrics=['accuracy'])
+model.fit(x=X_train,y=y_train,epochs=200,validation_split=0.1)
 all_pro = model.predict(X_test)
 all_pro = np.where(all_pro>0.5,1,0)
 acc = accuracy_score(all_pro,y_test)
-
 
 #df=pd.DataFrame=(dataFrame)

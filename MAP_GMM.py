@@ -22,13 +22,11 @@ SeModel= GMM(n_components=3,covariance_type='full', init_params='wc', n_iter=100
 SeModel.fit(X_train[:50,[0,2]])
 data = X_train[50:100,[0,2]] 
 sc = StandardScaler()
-inter = 5000
+inter = 1000
 while (inter != 0 ):
-    print('inter %d'%(inter))
+    #print('inter %d'%(inter))
     comPro= SeModel.predict_proba(data)
     Nk =np.sum(comPro,axis=0)
-    
-   
     ''' mean '''
     numData, numCompoent = comPro.shape
     '''2 is fea dim  '''
@@ -78,10 +76,16 @@ while (inter != 0 ):
     inter -=1
 
 x=SeModel.sample(100)    
-plt.scatter(x[:,0],x[:,1],facecolors='none',edgecolors='r')
-plt.scatter(X_train[50:100,0] ,X_train[50:100,2],facecolors='none',edgecolors='g')
-plt.scatter(X_train[0:50,0] ,X_train[0:50,2],facecolors='none',edgecolors='b')
-#cov = comPro*()
+plt.title('n_components='+str(SeModel.n_components))
+plt.scatter(x[:,0],x[:,1],facecolors='none',edgecolors='r',label='adaptation GMM')
+plt.scatter(X_train[50:100,0] ,X_train[50:100,2],facecolors='none',edgecolors='g',label='original iris2')
+plt.scatter(X_train[0:50,0] ,X_train[0:50,2],facecolors='none',edgecolors='b',label='original iris1')
+plt.legend()
+
+
+
+
+
 
 
 

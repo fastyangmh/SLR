@@ -23,8 +23,8 @@ SeModel= GMM(n_components=2,covariance_type='diag', init_params='wc', n_iter=100
 SeModel.fit(X_train[:,[0,2]])
 data = SeModel.sample(50)
 
-plt.scatter(X_train[:,[0]],X_train[:,[2]],label='Setosa')
-plt.scatter(data[:,[0]],data[:,[1]],label='GMM-Setosa' )
-plt.scatter(iris.data[50:100,0],iris.data[50:100,2],label='versicolor')
+plt.scatter(X_train[:,[0]],X_train[:,[2]],label='Iris1',facecolors='none',color='b')
+#plt.scatter(data[:,[0]],data[:,[1]],label='GMM-Iris1' ,facecolors='none',color='r')
+plt.scatter(iris.data[50:100,0],iris.data[50:100,2],label='Iris2',facecolors='none',color='g')
 plt.legend()
 plt.show()
