@@ -70,14 +70,16 @@ def frame_padding(mfccMatrix,frameStack=25):
     numofpadd = row%frameStack
     if numofpadd != 0 :
         if numofpadd < abs(frameStack/2):
-            return mfccMatrix[:col-numofpadd,:]
+            return mfccMatrix[:row-numofpadd,:]
         else:                
             zerosMat = np.zeros((frameStack-numofpadd,col))
             return np.append(mfccMatrix,zerosMat,axis=0)
+        
     return  mfccMatrix   
 
 if __name__ == '__main__':
     rate , sig = wav.read("a-0001.wav")
+    sig = sig[:4414] 
     MFCC_39 = MFCC(sig,rate)
     MFCC_39_padding = frame_padding(MFCC_39 ,frameStack=25)
     superFrame = MatrixToSuperFrame(MFCC_39_padding,stackSize=25)
