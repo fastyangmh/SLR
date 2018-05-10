@@ -27,8 +27,10 @@ def MFCC(sig,rate,n_mfcc=13,hop_length=256,n_fft=1024,reType='M'):
         '''
         retuen 
         MFCC Matrix 
+        (NumOfFrame,feature)
+        
         '''
-        return mfcc_39
+        return mfcc_39.T
 
 # Using the Test Wav excutes MFCC function.
 
@@ -45,15 +47,15 @@ def MatrixToSuperFrame(X,stackSize=25):
     given feature Matrix X and stackSize 
     X row : feature  , X col : sample/frame  
     
-    X Matrix : (feature , n_sample )   <---   future whould be fixed
+    X Matrix : ( n_sample,feature )   <---   future whould be fixed
     return stack feature Matrix 
     stack feature Matrix : (n_samples, n_features)                 
     '''
     #can add numpy condiction 
     row,col = X.shape 
-    if col >= stackSize:
-        inter = col/stackSize
-        X = X.flatten('F')
+    if row >= stackSize:
+        inter = row/stackSize
+        X = X.flatten('C')
         split = np.asarray(np.split(X,inter))
     return split
 
@@ -65,21 +67,20 @@ def frame_padding(mfccMatrix,frameStack=25):
     return Matrix 
     '''
     row,col = mfccMatrix.shape
-    numofpadd = col%frameStack
+    numofpadd = row%frameStack
     if numofpadd != 0 :
         if numofpadd < abs(frameStack/2):
-            return mfccMatrix[:,:col-numofpadd]
+            return mfccMatrix[:col-numofpadd,:]
         else:                
-            zerosMat = np.zeros((row,frameStack-numofpadd))
-            return np.append(mfccMatrix,zerosMat,axis=1)
+            zerosMat = np.zeros((frameStack-numofpadd,col))
+            return np.append(mfccMatrix,zerosMat,axis=0)
     return  mfccMatrix   
-
 
 if __name__ == '__main__':
     rate , sig = wav.read("a-0001.wav")
     MFCC_39 = MFCC(sig,rate)
     MFCC_39_padding = frame_padding(MFCC_39 ,frameStack=25)
     superFrame = MatrixToSuperFrame(MFCC_39_padding,stackSize=25)
-    
+ #   e_p = MatrixToSuperFrame(e,3)
 
 
