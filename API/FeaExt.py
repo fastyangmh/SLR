@@ -16,24 +16,70 @@ def MFCC(sig,rate,n_mfcc=13,hop_length=256,n_fft=1024,reType='M'):
     mfcc_delta_delta = lb.feature.delta(mfcc_delta)
     mfcc_39=np.vstack([mfcc, mfcc_delta,mfcc_delta_delta])
     if reType == 'S':
+        '''
+        retuen 
+        MFCC one line by time sequence 
+        '''
         h_mfcc_39=np.reshape(mfcc_39,(mfcc_39.shape[0]*mfcc_39.shape[1]),order='F') 
         return h_mfcc_39
+    
     elif reType == 'M':
+        '''
+        retuen 
+        MFCC Matrix 
+        '''
         return mfcc_39
+
 # Using the Test Wav excutes MFCC function.
 
-def superFrame():
-    return 0
+def dataFrameToSuperFrame(dataFrame,stackSize=25):
+    '''
+    X: 
+    given key:Value  and stackSize 
+    return stack feature Matrix 
+    '''
+    return 0 
 
+def MatrixToSuperFrame(X,stackSize=25):
+    '''
+    given feature Matrix X and stackSize 
+    X row : feature  , X col : sample/frame  
+    
+    X Matrix : (feature , n_sample )   <---   future whould be fixed
+    return stack feature Matrix 
+    stack feature Matrix : (n_samples, n_features)                 
+    '''
+    #can add numpy condiction 
+    row,col = X.shape 
+    if col >= stackSize:
+        inter = col/stackSize
+        X = X.flatten('F')
+        split = np.asarray(np.split(X,inter))
+    return split
+
+def frame_padding(mfccMatrix,frameStack=25):
+    ''' 
+    given mfcc matrix and based on frameStack to pending or dropout
+    MFCC Matrix (feature , n_sample ) <---   future whould be fixed
+
+    return Matrix 
+    '''
+    row,col = mfccMatrix.shape
+    numofpadd = col%frameStack
+    if numofpadd != 0 :
+        if numofpadd < abs(frameStack/2):
+            return mfccMatrix[:,:col-numofpadd]
+        else:                
+            zerosMat = np.zeros((row,frameStack-numofpadd))
+            return np.append(mfccMatrix,zerosMat,axis=1)
+    return  mfccMatrix   
 
 
 if __name__ == '__main__':
     rate , sig = wav.read("a-0001.wav")
     MFCC_39 = MFCC(sig,rate)
+    MFCC_39_padding = frame_padding(MFCC_39 ,frameStack=25)
+    superFrame = MatrixToSuperFrame(MFCC_39_padding,stackSize=25)
     
 
 
-
-
-
-    #x = lb.core.stft(sig,n_fft=1024,hop_length=512)
