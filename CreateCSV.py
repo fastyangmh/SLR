@@ -2,7 +2,6 @@ import pandas  as pd
 import scipy.io.wavfile as wav
 import librosa  as lb
 import numpy as np
-from sklearn.decomposition import PCA 
 np.set_printoptions(threshold=np.nan)
 def getlabel():
     label= []

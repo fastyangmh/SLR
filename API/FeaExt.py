@@ -21,6 +21,12 @@ def MFCC(sig,rate,n_mfcc=13,hop_length=256,n_fft=1024,reType='M'):
     elif reType == 'M':
         return mfcc_39
 # Using the Test Wav excutes MFCC function.
+
+def superFrame():
+    return 0
+
+
+
 if __name__ == '__main__':
     rate , sig = wav.read("a-0001.wav")
     MFCC_39 = MFCC(sig,rate)
