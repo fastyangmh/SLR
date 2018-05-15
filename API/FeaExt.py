@@ -1,15 +1,7 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Mar  5 14:06:46 2018
-
-@author: rocky
-"""
 import scipy.io.wavfile as wav
 import librosa  as lb
 import numpy as np 
-# MFCC frame size should be decided by audio segmentions size
-# but now MFCC Size is using fixed size 
+
 def MFCC(sig,rate,n_mfcc=13,hop_length=256,n_fft=1024,reType='M'):
     mfcc=lb.feature.mfcc(sig,rate,n_mfcc=n_mfcc,hop_length=hop_length,n_fft=n_fft)
     mfcc_delta = lb.feature.delta(mfcc)
@@ -32,17 +24,7 @@ def MFCC(sig,rate,n_mfcc=13,hop_length=256,n_fft=1024,reType='M'):
         '''
         return mfcc_39.T
 
-# Using the Test Wav excutes MFCC function.
-
-def dataFrameToSuperFrame(dataFrame,stackSize=25):
-    '''
-    X: 
-    given key:Value  and stackSize 
-    return stack feature Matrix 
-    '''
-    return 0 
-
-def MatrixToSuperFrame(X,stackSize=25):
+def MatrixToSuperFrame(X,stackSize=25,Rtype='matrix'):
     '''
     given feature Matrix X and stackSize 
     X row : feature  , X col : sample/frame  
@@ -56,14 +38,16 @@ def MatrixToSuperFrame(X,stackSize=25):
     if row >= stackSize:
         inter = row/stackSize
         X = X.flatten('C')
-        split = np.asarray(np.split(X,inter))
-    return split
+        split = np.split(X,inter)
+    if Rtype == 'list':
+        return split
+    elif Rtype == 'matrix':
+        return np.asarray(split)
 
 def frame_padding(mfccMatrix,frameStack=25):
     ''' 
     given mfcc matrix and based on frameStack to pending or dropout
     MFCC Matrix (feature , n_sample ) <---   future whould be fixed
-
     return Matrix 
     '''
     row,col = mfccMatrix.shape
@@ -83,6 +67,3 @@ if __name__ == '__main__':
     MFCC_39 = MFCC(sig,rate)
     MFCC_39_padding = frame_padding(MFCC_39 ,frameStack=25)
     superFrame = MatrixToSuperFrame(MFCC_39_padding,stackSize=25)
- #   e_p = MatrixToSuperFrame(e,3)
-
-
